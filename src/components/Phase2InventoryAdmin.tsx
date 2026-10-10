@@ -203,7 +203,38 @@ const Phase2InventoryAdminContent: React.FC = () => {
   const handleSaveProduct = (e: React.FormEvent) => {
     e.preventDefault();
     if (!prodCode || !prodName) return;
+
+    // F05: Reject negative or zero base weight
+    const numWeight = Number(prodWeight);
+    if (isNaN(numWeight) || numWeight <= 0) {
+      showToast(
+        `Rechazado: El peso base debe ser mayor a 0.00 KG (no se permiten valores negativos como ${prodWeight} ni cero).`,
+        'error'
+      );
+      return;
+    }
+
     const finalCode = formatProductCode(prodCode);
+    if (!finalCode || !/^\d{2}-\d{3}$/.test(finalCode)) {
+      showToast('Rechazado: Formato de SKU inválido. Debe tener 5 dígitos (ej. 12-345 o 99-101).', 'error');
+      return;
+    }
+
+    // F02: Reject duplicate product code (e.g. 99-101)
+    const isDuplicate = products.some(
+      (p) =>
+        (!editingProduct || p.id !== editingProduct.id) &&
+        p.code.trim().toUpperCase() === finalCode.trim().toUpperCase()
+    );
+
+    if (isDuplicate) {
+      showToast(
+        `Rechazado: El código de producto "${finalCode}" ya existe en el catálogo. Ingrese un código único.`,
+        'error'
+      );
+      return;
+    }
+
     const selectedTare = tares.find((t) => t.id === prodTareId);
 
     if (editingProduct) {
@@ -215,7 +246,7 @@ const Phase2InventoryAdminContent: React.FC = () => {
         unit: prodUnit,
         reorderPoint: Number(prodReorder),
         description: prodDesc,
-        defaultWeight: Number(prodWeight),
+        defaultWeight: numWeight,
         barcodeType: prodBarcode,
         warehouse: prodWarehouse,
         subWarehouse: prodSubWarehouse || undefined,
@@ -233,7 +264,7 @@ const Phase2InventoryAdminContent: React.FC = () => {
         unit: prodUnit,
         reorderPoint: Number(prodReorder),
         description: prodDesc,
-        defaultWeight: Number(prodWeight),
+        defaultWeight: numWeight,
         barcodeType: prodBarcode,
         warehouse: prodWarehouse,
         subWarehouse: prodSubWarehouse || undefined,
@@ -1881,10 +1912,11 @@ const Phase2InventoryAdminContent: React.FC = () => {
                 </div>
 
                 <div>
-                  <label className="block text-[10px] font-bold text-[#141414] mb-1 uppercase">Peso Base</label>
+                  <label className="block text-[10px] font-bold text-[#141414] mb-1 uppercase">Peso Base (Mayor a 0 KG)</label>
                   <input
                     type="number"
-                    step="0.1"
+                    step="0.01"
+                    min="0.01"
                     value={prodWeight}
                     onChange={(e) => setProdWeight(Number(e.target.value))}
                     className="w-full px-2 py-1.5 bg-[#F8F7F4] border border-[#141414] font-bold outline-hidden"

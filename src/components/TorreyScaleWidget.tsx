@@ -29,6 +29,8 @@ interface Props {
   currentWeight?: number;
   minWeight?: number;
   onMinWeightChange?: (minWeight: number) => void;
+  isManualAuthorized?: boolean;
+  onToggleManualAuthorized?: (authorized: boolean) => void;
 }
 
 export const TorreyScaleWidget: React.FC<Props> = ({
@@ -37,9 +39,13 @@ export const TorreyScaleWidget: React.FC<Props> = ({
   currentWeight = 0.0,
   minWeight = 0.50,
   onMinWeightChange,
+  isManualAuthorized = false,
+  onToggleManualAuthorized,
 }) => {
   const [isConnected, setIsConnected] = useState(false);
   const [baudRate, setBaudRate] = useState<number>(9600);
+  const [isManualMode, setIsManualMode] = useState<boolean>(isManualAuthorized);
+  const [manualInputStr, setManualInputStr] = useState<string>(currentWeight > 0 ? String(currentWeight) : '');
   const [reading, setReading] = useState<TorreyScaleReading>({
     weight: currentWeight,
     unit: 'KG',
@@ -47,7 +53,17 @@ export const TorreyScaleWidget: React.FC<Props> = ({
     raw: `  ${currentWeight.toFixed(2)} kg ST`,
     timestamp: new Date().toLocaleTimeString('es-MX'),
   });
-  const [statusMessage, setStatusMessage] = useState<string>('Báscula Torrey lista. Conecte su puerto Serie RS-232 / USB COM.');
+  const [statusMessage, setStatusMessage] = useState<string>(
+    isManualAuthorized
+      ? 'Modo: Captura manual autorizada activa (Sin báscula).'
+      : 'Báscula Torrey lista. Conecte su puerto Serie RS-232 / USB COM o active Captura Manual.'
+  );
+
+  useEffect(() => {
+    if (isManualAuthorized !== undefined) {
+      setIsManualMode(isManualAuthorized);
+    }
+  }, [isManualAuthorized]);
   const [showGuide, setShowGuide] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
   const [autoApply, setAutoApply] = useState(false);
@@ -233,6 +249,40 @@ export const TorreyScaleWidget: React.FC<Props> = ({
         </div>
 
         <div className="flex items-center gap-2">
+          {/* Mode toggle: Serial COM vs Authorized Manual */}
+          <div className="flex items-center border border-[#3A3A36] bg-[#1E1E1C] p-0.5">
+            <button
+              type="button"
+              onClick={() => {
+                setIsManualMode(false);
+                if (onToggleManualAuthorized) onToggleManualAuthorized(false);
+                setStatusMessage('Modo: Báscula Torrey Serie COM.');
+              }}
+              className={`px-2 py-1 text-[9px] font-bold uppercase transition-all cursor-pointer ${
+                !isManualMode
+                  ? 'bg-amber-400 text-black font-black'
+                  : 'text-gray-400 hover:text-white'
+              }`}
+            >
+              ⚖️ COM (Báscula)
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setIsManualMode(true);
+                if (onToggleManualAuthorized) onToggleManualAuthorized(true);
+                setStatusMessage('Modo: Captura manual autorizada activa (Sin báscula).');
+              }}
+              className={`px-2 py-1 text-[9px] font-bold uppercase transition-all cursor-pointer flex items-center gap-1 ${
+                isManualMode
+                  ? 'bg-cyan-400 text-black font-black'
+                  : 'text-gray-400 hover:text-white'
+              }`}
+            >
+              <span>✍️ Captura Manual</span>
+            </button>
+          </div>
+
           <button
             type="button"
             onClick={() => setShowSettings(!showSettings)}
@@ -240,7 +290,7 @@ export const TorreyScaleWidget: React.FC<Props> = ({
             title="Ajustes de Báscula"
           >
             <Settings2 className="w-3.5 h-3.5" />
-            <span>Configuración</span>
+            <span>Config</span>
           </button>
         </div>
       </div>
@@ -365,22 +415,33 @@ export const TorreyScaleWidget: React.FC<Props> = ({
       )}
 
       {/* DIGITAL LED DISPLAY PANEL */}
-      <div className="bg-black p-3 border-2 border-amber-500/40 rounded-xs relative overflow-hidden">
+      <div className={`p-3 border-2 rounded-xs relative overflow-hidden transition-all ${
+        isManualMode ? 'bg-[#0E171E] border-cyan-500/60' : 'bg-black border-amber-500/40'
+      }`}>
         {/* LED background grid effect */}
         <div className="absolute inset-0 bg-[radial-gradient(#333_1px,transparent_1px)] [background-size:8px_8px] opacity-20 pointer-events-none" />
 
         <div className="relative flex items-center justify-between">
           <div>
-            <span className="text-[9px] font-extrabold text-amber-500/80 uppercase tracking-widest block">
-              LECTURA BÁSCULA (PUERTO COM / SERIE)
+            <span className={`text-[9px] font-extrabold uppercase tracking-widest block ${
+              isManualMode ? 'text-cyan-400' : 'text-amber-500/80'
+            }`}>
+              {isManualMode ? '✍️ CAPTURA MANUAL AUTORIZADA (CONTINGENCIA / SIN BÁSCULA)' : 'LECTURA BÁSCULA (PUERTO COM / SERIE)'}
             </span>
             <div className="flex items-baseline gap-2">
-              <span className="text-3xl font-black text-amber-400 tracking-wider font-mono drop-shadow-[0_0_8px_rgba(251,191,36,0.5)]">
+              <span className={`text-3xl font-black tracking-wider font-mono drop-shadow-[0_0_8px_rgba(251,191,36,0.5)] ${
+                isManualMode ? 'text-cyan-300' : 'text-amber-400'
+              }`}>
                 {(typeof reading?.weight === 'number' && !isNaN(reading.weight) ? reading.weight : 0).toFixed(2)}
               </span>
-              <span className="text-base font-extrabold text-amber-300">
+              <span className={`text-base font-extrabold ${isManualMode ? 'text-cyan-200' : 'text-amber-300'}`}>
                 {reading.unit}
               </span>
+              {isManualMode && (
+                <span className="text-[10px] text-cyan-400 bg-cyan-950 px-2 py-0.5 border border-cyan-600 font-bold ml-2">
+                  CAPTURA MANUAL
+                </span>
+              )}
             </div>
           </div>
 
@@ -402,7 +463,7 @@ export const TorreyScaleWidget: React.FC<Props> = ({
                     : 'bg-rose-950 text-rose-400 border-rose-500'
                 }`}
               >
-                {reading.isStable ? 'ST (ESTABLE)' : 'US (INESTABLE)'}
+                {isManualMode ? 'MANUAL OK' : reading.isStable ? 'ST (ESTABLE)' : 'US (INESTABLE)'}
               </span>
             </div>
             <p className="text-[9px] text-[#A0A09C]">
@@ -413,66 +474,146 @@ export const TorreyScaleWidget: React.FC<Props> = ({
 
         {/* CONTROLS BAR INSIDE DISPLAY */}
         <div className="mt-3 pt-2 border-t border-[#333] flex flex-wrap items-center justify-between gap-2">
-          <div className="flex items-center gap-1">
-            {isConnected ? (
+          {isManualMode ? (
+            /* MANUAL WEIGHT INPUT & PRESETS */
+            <div className="flex flex-wrap items-center gap-2 w-full">
+              <div className="flex items-center gap-1.5 bg-[#141414] px-2 py-1 border border-cyan-500/50">
+                <span className="text-[10px] text-cyan-300 font-bold uppercase">Peso Bruto:</span>
+                <input
+                  type="number"
+                  step="0.01"
+                  min="0.01"
+                  placeholder="0.00"
+                  value={manualInputStr}
+                  onChange={(e) => {
+                    setManualInputStr(e.target.value);
+                    const val = parseFloat(e.target.value);
+                    const safeVal = isNaN(val) ? 0 : Math.max(0, val);
+                    setReading({
+                      weight: safeVal,
+                      unit: 'KG',
+                      isStable: true,
+                      raw: `  ${safeVal.toFixed(2)} kg MANUAL`,
+                      timestamp: new Date().toLocaleTimeString('es-MX'),
+                    });
+                    if (onWeightReceivedRef.current) {
+                      onWeightReceivedRef.current(safeVal);
+                    }
+                  }}
+                  className="w-24 bg-black text-cyan-300 font-mono text-xs font-black px-1.5 py-0.5 border border-cyan-400 text-right focus:outline-hidden"
+                />
+                <span className="text-[10px] text-cyan-400 font-bold">KG</span>
+              </div>
+
+              {/* Quick Presets */}
+              <div className="flex items-center gap-1">
+                <span className="text-[9px] text-gray-400 uppercase font-bold mr-0.5">Frecuentes:</span>
+                {[10.0, 15.5, 25.0, 30.0].map((pw) => (
+                  <button
+                    key={pw}
+                    type="button"
+                    onClick={() => {
+                      setManualInputStr(String(pw));
+                      setReading({
+                        weight: pw,
+                        unit: 'KG',
+                        isStable: true,
+                        raw: `  ${pw.toFixed(2)} kg MANUAL`,
+                        timestamp: new Date().toLocaleTimeString('es-MX'),
+                      });
+                      if (onWeightReceivedRef.current) {
+                        onWeightReceivedRef.current(pw);
+                      }
+                      setStatusMessage(`Peso manual ${pw.toFixed(2)} KG aplicado.`);
+                    }}
+                    className="px-2 py-1 bg-[#1E293B] hover:bg-cyan-900 text-cyan-300 text-[10px] font-bold border border-cyan-700/60 cursor-pointer"
+                  >
+                    {pw.toFixed(1)} kg
+                  </button>
+                ))}
+              </div>
+
               <button
                 type="button"
-                onClick={handleDisconnect}
-                className="px-2 py-1 bg-rose-900 hover:bg-rose-800 text-white text-[10px] font-bold border border-rose-500 flex items-center gap-1"
+                onClick={() => {
+                  const val = parseFloat(manualInputStr);
+                  const safeVal = isNaN(val) ? 0 : Math.max(0, val);
+                  if (onWeightReceivedRef.current) {
+                    onWeightReceivedRef.current(safeVal);
+                  }
+                  setStatusMessage(`✅ Peso manual ${safeVal.toFixed(2)} KG transferido a la etiqueta.`);
+                }}
+                className="ml-auto px-3 py-1 bg-cyan-600 hover:bg-cyan-500 text-black text-[10px] font-black border border-cyan-400 flex items-center gap-1 cursor-pointer"
               >
-                Desconectar COM
+                <span>Aplicar a Etiqueta</span>
+                <ArrowRight className="w-3 h-3" />
               </button>
-            ) : (
+            </div>
+          ) : (
+            /* SERIAL COM HARDWARE CONTROLS */
+            <>
+              <div className="flex items-center gap-1">
+                {isConnected ? (
+                  <button
+                    type="button"
+                    onClick={handleDisconnect}
+                    className="px-2 py-1 bg-rose-900 hover:bg-rose-800 text-white text-[10px] font-bold border border-rose-500 flex items-center gap-1"
+                  >
+                    Desconectar COM
+                  </button>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={handleConnectSerial}
+                    className={`px-2.5 py-1 text-[10px] font-extrabold border flex items-center gap-1 ${
+                      webSerialSupported
+                        ? 'bg-amber-400 text-[#141414] border-amber-300 hover:bg-amber-300'
+                        : 'bg-[#333] text-[#777] border-[#444] cursor-not-allowed'
+                    }`}
+                  >
+                    <Cable className="w-3.5 h-3.5" />
+                    <span>Conectar Puerto Serie USB (COM)</span>
+                  </button>
+                )}
+
+                <button
+                  type="button"
+                  onClick={handleTare}
+                  className="px-2 py-1 bg-[#242422] hover:bg-[#333] text-amber-300 text-[10px] font-bold border border-[#444]"
+                  title="Manda comando T a la báscula para establecer Tara"
+                >
+                  Tarar (T)
+                </button>
+
+                <button
+                  type="button"
+                  onClick={handleZero}
+                  className="px-2 py-1 bg-[#242422] hover:bg-[#333] text-cyan-300 text-[10px] font-bold border border-[#444]"
+                  title="Manda comando Z a la báscula para poner Cero"
+                >
+                  Cero (Z)
+                </button>
+
+                <button
+                  type="button"
+                  onClick={handleRequestWeight}
+                  className="px-2 py-1 bg-[#242422] hover:bg-[#333] text-emerald-300 text-[10px] font-bold border border-[#444]"
+                  title="Manda comando P para solicitar peso instantáneo"
+                >
+                  Pedir Peso (P)
+                </button>
+              </div>
+
               <button
                 type="button"
-                onClick={handleConnectSerial}
-                className={`px-2.5 py-1 text-[10px] font-extrabold border flex items-center gap-1 ${
-                  webSerialSupported
-                    ? 'bg-amber-400 text-[#141414] border-amber-300 hover:bg-amber-300'
-                    : 'bg-[#333] text-[#777] border-[#444] cursor-not-allowed'
-                }`}
+                onClick={handleTransferToLabel}
+                className="px-3 py-1 bg-emerald-600 hover:bg-emerald-500 text-white text-[10px] font-extrabold border border-emerald-400 flex items-center gap-1 cursor-pointer"
               >
-                <Cable className="w-3.5 h-3.5" />
-                <span>Conectar Puerto Serie USB (COM)</span>
+                <span>Usar Peso ({(typeof reading?.weight === 'number' && !isNaN(reading.weight) ? reading.weight : 0).toFixed(2)} {reading.unit})</span>
+                <ArrowRight className="w-3 h-3" />
               </button>
-            )}
-
-            <button
-              type="button"
-              onClick={handleTare}
-              className="px-2 py-1 bg-[#242422] hover:bg-[#333] text-amber-300 text-[10px] font-bold border border-[#444]"
-              title="Manda comando T a la báscula para establecer Tara"
-            >
-              Tarar (T)
-            </button>
-
-            <button
-              type="button"
-              onClick={handleZero}
-              className="px-2 py-1 bg-[#242422] hover:bg-[#333] text-cyan-300 text-[10px] font-bold border border-[#444]"
-              title="Manda comando Z a la báscula para poner Cero"
-            >
-              Cero (Z)
-            </button>
-
-            <button
-              type="button"
-              onClick={handleRequestWeight}
-              className="px-2 py-1 bg-[#242422] hover:bg-[#333] text-emerald-300 text-[10px] font-bold border border-[#444]"
-              title="Manda comando P para solicitar peso instantáneo"
-            >
-              Pedir Peso (P)
-            </button>
-          </div>
-
-          <button
-            type="button"
-            onClick={handleTransferToLabel}
-            className="px-3 py-1 bg-emerald-600 hover:bg-emerald-500 text-white text-[10px] font-extrabold border border-emerald-400 flex items-center gap-1"
-          >
-            <span>Usar Peso ({(typeof reading?.weight === 'number' && !isNaN(reading.weight) ? reading.weight : 0).toFixed(2)} {reading.unit})</span>
-            <ArrowRight className="w-3 h-3" />
-          </button>
+            </>
+          )}
         </div>
       </div>
 

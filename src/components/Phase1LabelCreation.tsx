@@ -200,6 +200,7 @@ export const Phase1LabelCreation: React.FC<Props> = ({ onOpenFormatEditor }) => 
 
   // 3. Báscula Torrey
   const [weight, setWeight] = useState<number>(0.0);
+  const [isManualCaptureAuthorized, setIsManualCaptureAuthorized] = useState<boolean>(false);
   const latestScaleWeightRef = useRef<number>(0.0);
   const [minWeight, setMinWeight] = useState<number>(() => {
     const saved = localStorage.getItem('torrey_min_weight');
@@ -443,7 +444,11 @@ export const Phase1LabelCreation: React.FC<Props> = ({ onOpenFormatEditor }) => 
 
     if (!activeRawWeight || activeRawWeight <= 0 || isNaN(activeRawWeight)) {
       setPrintStatus('error');
-      setStatusMessage('⚠️ ADVERTENCIA: No hay peso en la báscula para generar la etiqueta.');
+      setStatusMessage(
+        isManualCaptureAuthorized
+          ? '⚠️ Ingrese un peso manual mayor a 0.00 KG en la Captura Manual Autorizada.'
+          : '⚠️ ADVERTENCIA: No hay peso en la báscula para generar la etiqueta.'
+      );
       setShowWeightWarningModal(true);
       return false;
     }
@@ -1131,6 +1136,8 @@ export const Phase1LabelCreation: React.FC<Props> = ({ onOpenFormatEditor }) => 
               currentWeight={weight}
               minWeight={minWeight}
               onMinWeightChange={handleMinWeightChange}
+              isManualAuthorized={isManualCaptureAuthorized}
+              onToggleManualAuthorized={(auth) => setIsManualCaptureAuthorized(auth)}
               onWeightReceived={(w) => setWeight(w)}
               onLatestReading={(r) => {
                 latestScaleWeightRef.current = r.weight;
@@ -1892,13 +1899,24 @@ export const Phase1LabelCreation: React.FC<Props> = ({ onOpenFormatEditor }) => 
               </p>
             </div>
 
-            <div className="flex justify-end pt-2">
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-2 pt-2">
+              <button
+                type="button"
+                onClick={() => {
+                  setShowWeightWarningModal(false);
+                  setIsManualCaptureAuthorized(true);
+                  setStatusMessage('Modo: Captura manual autorizada activa (Sin báscula). Ingrese el peso en la báscula Torrey.');
+                }}
+                className="w-full sm:w-auto px-4 py-2 bg-amber-400 hover:bg-amber-300 text-black font-mono font-black text-xs uppercase tracking-wider border border-[#141414] shadow-sm cursor-pointer flex items-center justify-center gap-1.5"
+              >
+                <span>✍️ Habilitar Captura Manual Autorizada (Sin Báscula)</span>
+              </button>
               <button
                 type="button"
                 onClick={() => setShowWeightWarningModal(false)}
-                className="px-5 py-2 bg-rose-600 hover:bg-rose-700 text-white font-mono font-bold text-xs uppercase tracking-wider border border-[#141414] shadow-sm cursor-pointer"
+                className="w-full sm:w-auto px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white font-mono font-bold text-xs uppercase tracking-wider border border-[#141414] shadow-sm cursor-pointer"
               >
-                Entendido / Ajustar Peso
+                Cerrar / Ajustar Peso
               </button>
             </div>
           </div>

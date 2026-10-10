@@ -938,11 +938,20 @@ export const InventoryProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   // CRUD OPERATIONS WITH FIRESTORE
   // ---------------------------------------------------------------------------
   const addProduct = (productData: Omit<Product, 'id'>): Product => {
+    const formattedCode = formatProductCode(productData.code);
+    const existing = products.find((p) => p.code.trim().toUpperCase() === formattedCode.trim().toUpperCase());
+    if (existing) {
+      console.warn(`[addProduct] Código duplicado detectado: ${formattedCode}. Retornando producto existente.`);
+      return existing;
+    }
+
     const resolvedSpecies = productData.speciesLegend?.trim() || inferProductSpeciesLegend(productData);
+    const validWeight = Number(productData.defaultWeight) > 0 ? Number(productData.defaultWeight) : 10.0;
     const newProduct: Product = {
       ...productData,
+      defaultWeight: validWeight,
       warehouse: 'Congelado',
-      code: formatProductCode(productData.code),
+      code: formattedCode,
       speciesLegend: resolvedSpecies,
       id: `prod-${Date.now()}`,
     };

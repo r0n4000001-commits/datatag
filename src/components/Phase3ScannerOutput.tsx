@@ -269,14 +269,21 @@ export const Phase3ScannerOutput: React.FC = () => {
     if (!cleanCode) return null;
 
     const upperCode = cleanCode.toUpperCase();
-    const rawNumberOnly = upperCode.replace(/^LBL-?/i, '').replace(/[^0-9A-Z]/g, '');
-    const normalizedLBL = rawNumberOnly ? `LBL-${rawNumberOnly}` : upperCode;
 
-    // 1. Direct ID match (case-insensitive, prefix-tolerant: e.g. "76467", "LBL-76467", "lbl-76467", "LBL76467")
+    // F03: Reject incomplete barcode prefixes (e.g. "LBL", "LBL-", "LBL--")
+    // Incomplete barcodes must NOT resolve to random existing labels!
+    if (/^LBL-?$/i.test(upperCode) || upperCode === 'LBL' || upperCode === 'LBL-') {
+      return null;
+    }
+
+    const rawNumberOnly = upperCode.replace(/^LBL-?/i, '').replace(/[^0-9A-Z]/g, '');
+    const normalizedLBL = rawNumberOnly.length >= 4 ? `LBL-${rawNumberOnly}` : '';
+
+    // 1. Direct ID match (Exact match, or full numeric suffix with at least 4 digits: e.g. "73601" -> "LBL-73601")
     let match = labels.find((l) => {
       const lid = l.id.toUpperCase();
       const lidRaw = lid.replace(/^LBL-?/i, '').replace(/[^0-9A-Z]/g, '');
-      return lid === upperCode || lid === normalizedLBL || (rawNumberOnly.length >= 3 && lidRaw === rawNumberOnly);
+      return lid === upperCode || (normalizedLBL !== '' && lid === normalizedLBL) || (rawNumberOnly.length >= 4 && lidRaw === rawNumberOnly);
     });
     if (match) return match;
 
@@ -286,7 +293,7 @@ export const Phase3ScannerOutput: React.FC = () => {
       const itemMatch = orderItems.find((it) => {
         const iid = it.labelId.toUpperCase();
         const iidRaw = iid.replace(/^LBL-?/i, '').replace(/[^0-9A-Z]/g, '');
-        return iid === upperCode || iid === normalizedLBL || (rawNumberOnly.length >= 3 && iidRaw === rawNumberOnly);
+        return iid === upperCode || (normalizedLBL !== '' && iid === normalizedLBL) || (rawNumberOnly.length >= 4 && iidRaw === rawNumberOnly);
       });
       if (itemMatch) {
         return {
@@ -365,10 +372,8 @@ export const Phase3ScannerOutput: React.FC = () => {
       if (match) return match;
     }
 
-    // 5. Fallback substring match in label id
-    match = labels.find((l) => l.id.toUpperCase().includes(upperCode));
-    if (match) return match;
-
+    // Notice: Removed loose fallback `labels.find(l => l.id.toUpperCase().includes(upperCode))`
+    // which caused partial string "LBL-" to falsely match "LBL-98755" (Falla F03).
     return null;
   }, [labels, dispatchMode, activeOrder]);
 
