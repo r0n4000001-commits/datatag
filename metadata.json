@@ -1,0 +1,6 @@
+{
+  "name": "Zebra ZPL Inventory & Label Manager",
+  "description": "Gestión de inventarios con impresión de etiquetas ZPL para impresoras del sistema/USB, báscula Torrey y control de salidas por escáner.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

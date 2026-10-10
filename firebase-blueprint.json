@@ -1,0 +1,251 @@
+{
+  "entities": {
+    "products": {
+      "title": "Products",
+      "description": "Catálogo de productos e insumos de la empresa",
+      "type": "object",
+      "properties": {
+        "code": { "type": "string" },
+        "name": { "type": "string" },
+        "category": { "type": "string" },
+        "unit": { "type": "string" },
+        "reorderPoint": { "type": "number" },
+        "description": { "type": "string" },
+        "defaultWeight": { "type": "number" },
+        "barcodeType": { "type": "string" },
+        "warehouse": { "type": "string" },
+        "subWarehouse": { "type": "string" }
+      },
+      "required": ["code", "name", "category", "unit", "reorderPoint", "barcodeType"]
+    },
+    "labels": {
+      "title": "Printed Labels",
+      "description": "Etiquetas de inventario impresas para trazabilidad y báscula",
+      "type": "object",
+      "properties": {
+        "productId": { "type": "string" },
+        "productCode": { "type": "string" },
+        "productName": { "type": "string" },
+        "category": { "type": "string" },
+        "lot": { "type": "string" },
+        "weight": { "type": "number" },
+        "unit": { "type": "string" },
+        "warehouse": { "type": "string" },
+        "subWarehouse": { "type": "string" },
+        "conditionFlag": { "type": "string" },
+        "expirationDate": { "type": "string" },
+        "printTimestamp": { "type": "string" },
+        "barcodePayload": { "type": "string" },
+        "printerIp": { "type": "string" },
+        "status": { "type": "string" },
+        "copies": { "type": "number" },
+        "isDischarged": { "type": "boolean" },
+        "dischargedAt": { "type": "string" },
+        "dischargedBy": { "type": "string" },
+        "dischargeReason": { "type": "string" }
+      },
+      "required": ["productId", "productCode", "productName", "lot", "weight", "unit", "warehouse", "printTimestamp", "isDischarged"]
+    },
+    "discharges": {
+      "title": "Discharge Records",
+      "description": "Registros de salidas y mermas de inventario por escaneo",
+      "type": "object",
+      "properties": {
+        "labelId": { "type": "string" },
+        "productCode": { "type": "string" },
+        "productName": { "type": "string" },
+        "lot": { "type": "string" },
+        "weight": { "type": "number" },
+        "unit": { "type": "string" },
+        "warehouse": { "type": "string" },
+        "subWarehouse": { "type": "string" },
+        "conditionFlag": { "type": "string" },
+        "scannedCode": { "type": "string" },
+        "timestamp": { "type": "string" },
+        "scannedBy": { "type": "string" },
+        "reason": { "type": "string" },
+        "notes": { "type": "string" }
+      },
+      "required": ["labelId", "productCode", "productName", "lot", "weight", "unit", "scannedCode", "timestamp", "scannedBy"]
+    },
+    "subWarehouses": {
+      "title": "Sub Warehouses",
+      "description": "Ubicaciones y zonas secundarias de almacén",
+      "type": "object",
+      "properties": {
+        "code": { "type": "string" },
+        "name": { "type": "string" },
+        "parentWarehouse": { "type": "string" },
+        "description": { "type": "string" },
+        "capacityKg": { "type": "number" }
+      },
+      "required": ["code", "name", "parentWarehouse"]
+    },
+    "categories": {
+      "title": "Categories",
+      "description": "Categorías de clasificación de productos",
+      "type": "object",
+      "properties": {
+        "code": { "type": "string" },
+        "name": { "type": "string" },
+        "description": { "type": "string" },
+        "color": { "type": "string" }
+      },
+      "required": ["code", "name"]
+    },
+    "tares": {
+      "title": "Tares",
+      "description": "Catálogo de taras de empaques para descontar del peso total bruto",
+      "type": "object",
+      "properties": {
+        "tareNumber": { "type": "number" },
+        "code": { "type": "string" },
+        "name": { "type": "string" },
+        "weight": { "type": "number" },
+        "unit": { "type": "string" },
+        "description": { "type": "string" }
+      },
+      "required": ["tareNumber", "code", "name", "weight"]
+    },
+    "marketReservations": {
+      "title": "Market Reservations",
+      "description": "Solicitudes y apartados de inventario creados por desarrolladores de mercado",
+      "type": "object",
+      "properties": {
+        "developerName": { "type": "string" },
+        "clientOrEvent": { "type": "string" },
+        "reason": { "type": "string" },
+        "status": { "type": "string" },
+        "reservationDate": { "type": "string" },
+        "requiredDate": { "type": "string" },
+        "notes": { "type": "string" },
+        "labelIds": { "type": "array" },
+        "totalWeight": { "type": "number" },
+        "totalItems": { "type": "number" }
+      },
+      "required": ["developerName", "clientOrEvent", "reason", "status", "reservationDate", "labelIds", "totalWeight"]
+    },
+    "configs": {
+      "title": "Configurations",
+      "description": "Configuraciones globales de impresoras y formato ZPL",
+      "type": "object",
+      "properties": {
+        "data": { "type": "object" }
+      }
+    },
+    "remoteScaleState": {
+      "title": "Remote Scale State",
+      "description": "Estado del peso transmitido en vivo desde la PC Principal a dispositivos remotos",
+      "type": "object",
+      "properties": {
+        "weight": { "type": "number" },
+        "unit": { "type": "string" },
+        "isStable": { "type": "boolean" },
+        "updatedAt": { "type": "string" }
+      }
+    },
+    "remotePrintJobs": {
+      "title": "Remote Print Jobs",
+      "description": "Cola de órdenes de impresión enviadas desde tablets/móviles para ser ejecutadas en la PC Principal",
+      "type": "object",
+      "properties": {
+        "productId": { "type": "string" },
+        "productCode": { "type": "string" },
+        "productName": { "type": "string" },
+        "category": { "type": "string" },
+        "lot": { "type": "string" },
+        "weight": { "type": "number" },
+        "unit": { "type": "string" },
+        "warehouse": { "type": "string" },
+        "subWarehouse": { "type": "string" },
+        "conditionFlag": { "type": "string" },
+        "copies": { "type": "number" },
+        "status": { "type": "string" },
+        "timestamp": { "type": "string" }
+      }
+    },
+    "systemUsers": {
+      "title": "System Users",
+      "description": "Directorio de usuarios e identificadores de empleados para control de operaciones",
+      "type": "object",
+      "properties": {
+        "employeeNumber": { "type": "string" },
+        "name": { "type": "string" },
+        "role": { "type": "string" },
+        "branch": { "type": "string" },
+        "email": { "type": "string" },
+        "phone": { "type": "string" },
+        "isActive": { "type": "boolean" },
+        "createdAt": { "type": "string" }
+      },
+      "required": ["employeeNumber", "name", "role", "isActive"]
+    },
+    "sifproChunks": {
+      "title": "SIFPRO Chunks",
+      "description": "Bloques agrupados de registros de inventario SIFPRO para optimización extrema de lecturas y costos en Firestore",
+      "type": "object",
+      "properties": {
+        "docDate": { "type": "string" },
+        "recordType": { "type": "string" },
+        "batchId": { "type": "string" },
+        "count": { "type": "number" },
+        "totalKg": { "type": "number" },
+        "records": { "type": "array" },
+        "updatedAt": { "type": "string" }
+      },
+      "required": ["count", "records"]
+    },
+    "sifproBalance": {
+      "title": "SIFPRO Balance",
+      "description": "Documento consolidado de balance de inventario para lecturas instantáneas a bajo costo",
+      "type": "object",
+      "properties": {
+        "lastUpdate": { "type": "string" },
+        "totalRecords": { "type": "number" },
+        "totalKg": { "type": "number" }
+      }
+    }
+  },
+  "firestore": {
+    "/products/{productId}": {
+      "schema": "products",
+      "description": "Catálogo de productos e insumos"
+    },
+    "/labels/{labelId}": {
+      "schema": "labels",
+      "description": "Etiquetas de inventario generadas"
+    },
+    "/discharges/{dischargeId}": {
+      "schema": "discharges",
+      "description": "Salidas de almacén y mermas"
+    },
+    "/subWarehouses/{subWarehouseId}": {
+      "schema": "subWarehouses",
+      "description": "Sub-almacenes y ubicaciones"
+    },
+    "/categories/{categoryId}": {
+      "schema": "categories",
+      "description": "Categorías de productos"
+    },
+    "/tares/{tareId}": {
+      "schema": "tares",
+      "description": "Catálogo de taras de empaque"
+    },
+    "/marketReservations/{reservationId}": {
+      "schema": "marketReservations",
+      "description": "Apartados de producto para telemarketing"
+    },
+    "/configs/{configId}": {
+      "schema": "configs",
+      "description": "Configuraciones globales"
+    },
+    "/sifpro_chunks/{chunkId}": {
+      "schema": "sifproChunks",
+      "description": "Documentos agrupados por bloques de inventario SIFPRO"
+    },
+    "/sifpro_balance/{balanceId}": {
+      "schema": "sifproBalance",
+      "description": "Resumen consolidado de balance SIFPRO"
+    }
+  }
+}

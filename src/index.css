@@ -1,0 +1,81 @@
+@import "tailwindcss";
+
+@layer base {
+  body {
+    background-color: #E4E3E0;
+    color: #141414;
+  }
+}
+
+/* Print Stylesheet for Local Thermal / USB Printer (Windows Driver) */
+@media print {
+  /* Force exact color reproduction for solid black boxes, white text, and vector barcodes */
+  *,
+  *::before,
+  *::after {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+    color-adjust: exact !important;
+  }
+
+  html, body {
+    background: #ffffff !important;
+    color: #000000 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  /* Hide all app UI chrome, navigation, headers, and controls */
+  body * {
+    visibility: hidden !important;
+  }
+
+  .no-print,
+  .no-print * {
+    display: none !important;
+    visibility: hidden !important;
+  }
+
+  /* Make only designated label container visible */
+  .printable-label-area,
+  .printable-label-area * {
+    visibility: visible !important;
+  }
+
+  .printable-label-area {
+    position: absolute !important;
+    left: 0 !important;
+    top: 0 !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 0 !important;
+    padding: 2mm !important;
+    background-color: #ffffff !important;
+    box-shadow: none !important;
+    border: 2px solid #000000 !important;
+    overflow: visible !important;
+  }
+
+  /* Guarantee black background box with pure white text for weight and badges */
+  .printable-label-area .bg-black,
+  .printable-label-area [class*="bg-black"] {
+    background-color: #000000 !important;
+    color: #ffffff !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  .printable-label-area .text-white {
+    color: #ffffff !important;
+  }
+
+  .printable-label-area svg {
+    display: block !important;
+    max-width: 100% !important;
+  }
+
+  @page {
+    size: auto;
+    margin: 0mm;
+  }
+}
